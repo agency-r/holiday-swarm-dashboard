@@ -1,0 +1,11 @@
+name: holiday-revenue-swarm
+static_sites:
+  - name: dashboard
+    git:
+      branch: main
+      repo_clone_url: https://github.com/agency-r/holiday-swarm-dashboard.git
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    output_dir: dist
+    index_document: index.html
+    catchall_document: index.html
