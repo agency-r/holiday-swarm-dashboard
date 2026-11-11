@@ -4,7 +4,7 @@ import { Knob, Panel, Segments, Spark } from './primitives'
 
 const TRAFFIC: [string, string][] = [['pinterest', C.blue], ['organic', C.ink], ['social', C.orange], ['email', C.yellow], ['paid', '#A9A49A']]
 
-export function LeftPanels() {
+export function LeftPanels({ only }: { only?: '01' | '02' | '03' } = {}) {
   const snap = useSwarm((s) => s.snap)
   if (!snap) return <div className="col left" />
   const m = snap.metrics
@@ -15,7 +15,7 @@ export function LeftPanels() {
   const tTotal = Object.values(m.traffic).reduce((a, b) => a + b, 0) || 1
   return (
     <div className="col left">
-      <Panel code="01" title="REVENUE" right={<span className={`chip ${p >= 1 ? 'yellow' : 'ghost'}`}>{p >= 1 ? 'GOAL HIT' : `${Math.floor(p * 100)}%`}</span>}>
+      {(!only || only === '01') && <Panel code="01" title="REVENUE" right={<span className={`chip ${p >= 1 ? 'yellow' : 'ghost'}`}>{p >= 1 ? 'GOAL HIT' : `${Math.floor(p * 100)}%`}</span>}>
         <div className="big-num">{fmt$(m.revenue)}<span className="cents">.{(m.revenue % 1).toFixed(2).slice(2)}</span></div>
         <div className="lbl">/ {fmt$(snap.goal)} goal by cyber monday</div>
         <Segments value={p} n={20} />
@@ -25,8 +25,8 @@ export function LeftPanels() {
           <div><span className="lbl">need/day</span><b style={{ color: need > pace ? C.orange : C.ink }}>{fmt$(need)}</b></div>
           <div><span className="lbl">ad spend</span><b>{fmt$(m.ad_spend)}</b></div>
         </div>
-      </Panel>
-      <Panel code="02" title="FUNNEL">
+      </Panel>}
+      {(!only || only === '02') && <Panel code="02" title="FUNNEL">
         <div className="knobs">
           <Knob value={Math.min(1, m.orders / 800)} color={C.yellow} label="orders" readout={fmtN(m.orders)} />
           <Knob value={Math.min(1, m.visitors / 20000)} color={C.blue} label="visitors" readout={fmtN(m.visitors)} />
@@ -38,8 +38,8 @@ export function LeftPanels() {
           <div><span className="lbl">products</span><b>{snap.products.length}</b></div>
           <div><span className="lbl">listings</span><b>{snap.listings.filter((l) => l.status === 'live').length}{snap.listings.length >= 24 ? '+' : ''}</b></div>
         </div>
-      </Panel>
-      <Panel code="03" title="TRAFFIC SOURCES">
+      </Panel>}
+      {(!only || only === '03') && <Panel code="03" title="TRAFFIC SOURCES">
         <div className="stack">
           {TRAFFIC.map(([k, c]) => <span key={k} style={{ width: `${((m.traffic[k] ?? 0) / tTotal) * 100}%`, background: c }} />)}
         </div>
@@ -53,7 +53,7 @@ export function LeftPanels() {
             </div>
           ))}
         </div>
-      </Panel>
+      </Panel>}
     </div>
   )
 }

@@ -8,7 +8,7 @@ const GLYPH: Record<SwarmEvent['kind'], [string, string]> = {
   publish: ['▲', C.ink], escalation: ['⚑', '#E5484D'], log: ['·', C.grey], system: ['■', C.greyDark],
 }
 
-export function RightPanels() {
+export function RightPanels({ only }: { only?: '04' | '05' | '06' } = {}) {
   const snap = useSwarm((s) => s.snap)
   const feed = useSwarm((s) => s.feed)
   const select = useSwarm((s) => s.select)
@@ -16,7 +16,7 @@ export function RightPanels() {
   const tasks = snap.tasks.slice(0, 7)
   return (
     <div className="col right">
-      <Panel code="04" title="TASK QUEUE" right={<span className="mono dim">{snap.tasks.length} open</span>}>
+      {(!only || only === '04') && <Panel code="04" title="TASK QUEUE" right={<span className="mono dim">{snap.tasks.length} open</span>}>
         <div className="tasks">
           {tasks.length === 0 && <div className="empty">queue clear</div>}
           {tasks.map((t) => {
@@ -31,8 +31,8 @@ export function RightPanels() {
             )
           })}
         </div>
-      </Panel>
-      <Panel code="05" title="LIVE FEED" className="grow">
+      </Panel>}
+      {(!only || only === '05') && <Panel code="05" title="LIVE FEED" className="grow">
         <div className="feed">
           {feed.slice(0, 22).map((e) => {
             const [g, c] = GLYPH[e.kind]
@@ -45,8 +45,8 @@ export function RightPanels() {
             )
           })}
         </div>
-      </Panel>
-      <Panel code="06" title="TOP PRODUCTS" right={<span className="mono dim">by revenue</span>}>
+      </Panel>}
+      {(!only || only === '06') && <Panel code="06" title="TOP PRODUCTS" right={<span className="mono dim">by revenue</span>}>
         <div className="products">
           {snap.products.slice(0, 5).map((p, i) => (
             <div key={p.id} className="product">
@@ -58,7 +58,7 @@ export function RightPanels() {
           ))}
           {snap.products.length === 0 && <div className="empty">forge is building the first product…</div>}
         </div>
-      </Panel>
+      </Panel>}
     </div>
   )
 }

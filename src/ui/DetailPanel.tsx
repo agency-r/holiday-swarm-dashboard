@@ -22,7 +22,7 @@ export function DetailPanel() {
           <div className="detail-name">{m.name}</div>
           <div className="detail-role">{agent.role}</div>
         </div>
-        <button className="close" style={{ color: fg, borderColor: fg }} onClick={() => select(null)}>✕</button>
+        <button type="button" className="close" aria-label="Close module" style={{ color: fg, borderColor: fg }} onClick={() => select(null)}>✕</button>
       </header>
       <div className="detail-body">
         <div className="row-between">
