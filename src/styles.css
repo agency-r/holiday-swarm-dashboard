@@ -97,6 +97,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 .feed { overflow: hidden; flex: 1; display: flex; flex-direction: column; gap: 2px; mask-image: linear-gradient(#000 80%, transparent); }
 .feed-row { display: grid; grid-template-columns: 14px 64px 1fr; gap: 6px; font-size: 11.5px; padding: 2px 0; animation: slide .35s ease-out both; align-items: baseline; }
 .feed-row.k-sale .feed-msg { font-weight: 500; }
+.feed-row.sim { opacity: .7; }
+.feed-row.sim .feed-who { letter-spacing: .08em; }
 @keyframes slide { from { opacity: 0; transform: translateX(10px); } }
 .glyph { font-family: var(--mono); font-weight: 700; text-align: center; }
 .feed-who { font-family: var(--mono); font-size: 9.5px; color: var(--grey-d); }

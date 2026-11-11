@@ -1,25 +1,36 @@
 /**
  * Connects to the Python swarm over WebSocket when a backend is configured.
- * Production/public builds default to the built-in ClientSim and do not probe
- * localhost or :8899, so a static deploy does not spin on failed reconnects.
+ * Production/public builds default to live Gumroad sales (sales.json) plus
+ * ambient agent animation. The built-in ClientSim is used for ?sim=1 / ?local=1
+ * / ?warp, or as a fallback when a backend URL is set but unreachable.
  *
  * URL resolution: ?ws=<url>  >  VITE_SWARM_WS  >  same-origin /ws (port 8899)  >  ws://<host>:8899/ws (dev only)
- * ?local=1 forces the local simulator. ?warp=<hours> fast-forwards the local simulator.
+ * ?live=1 forces live Gumroad mode (useful in local dev).
+ * ?sim=1 or ?local=1 forces the full local simulator. ?warp=<hours> fast-forwards it.
  */
+import { applyLiveSales, EMPTY_LIVE, fetchLiveSales, POLL_MS, type LiveSnapshot } from './liveSales'
 import { ClientSim } from '../sim/clientSim'
 import { useSwarm } from '../store'
-import type { ServerMessage } from '../types'
+import type { ServerMessage, Snapshot } from '../types'
 
 function hasExplicitBackend(): boolean {
   const params = new URLSearchParams(location.search)
   return Boolean(params.get('ws') || (import.meta.env.VITE_SWARM_WS as string | undefined))
 }
 
-function preferLocalSim(): boolean {
+function preferSim(): boolean {
   const params = new URLSearchParams(location.search)
-  if (params.get('local') === '1') return true
+  if (params.get('sim') === '1' || params.get('local') === '1') return true
+  if (params.get('warp') && params.get('live') !== '1') return true
+  return false
+}
+
+function preferLive(): boolean {
+  const params = new URLSearchParams(location.search)
+  if (params.get('live') === '1') return true
+  if (preferSim()) return false
   if (hasExplicitBackend()) return false
-  // Public/production hosts have no swarm backend.
+  // Public/production hosts have no swarm backend — show real Gumroad totals.
   if (import.meta.env.PROD) return true
   return false
 }
@@ -40,18 +51,51 @@ export function startConnection(): () => void {
   let sim: ClientSim | null = null
   let ws: WebSocket | null = null
   let retry: number | undefined
+  let poll: number | undefined
   let disposed = false
+  let live: LiveSnapshot | null = null
 
-  const startSim = () => {
+  const startSim = (ambient = false) => {
     if (sim) return
-    sim = new ClientSim((s) => useSwarm.getState().setSnapshot(s), Number(params.get('speed') ?? 1))
+    const publish = (s: Snapshot) => {
+      const overlay = live ?? (ambient ? EMPTY_LIVE : null)
+      useSwarm.getState().setSnapshot(overlay ? applyLiveSales(s, overlay) : s)
+    }
+    sim = new ClientSim(publish, Number(params.get('speed') ?? 1), ambient)
     const warp = Number(params.get('warp') ?? 0)
-    if (warp > 0) sim.warp(warp)
+    if (warp > 0 && !ambient) sim.warp(warp)
     sim.start()
-    useSwarm.getState().setLink('local')
+    useSwarm.getState().setLink(ambient ? 'live' : 'local')
     store.setControlHandler((a, agent) => sim?.control(a, agent))
   }
   const stopSim = () => { sim?.stop(); sim = null }
+
+  const startLive = () => {
+    startSim(true)
+    const load = async () => {
+      if (disposed) return
+      try {
+        live = await fetchLiveSales()
+        if (disposed) return
+        useSwarm.getState().setDataError(null)
+        const cur = useSwarm.getState().snap
+        if (cur) useSwarm.getState().setSnapshot(applyLiveSales(cur, live))
+        else {
+          // Sim publishes immediately; if a snapshot isn't in yet, the next tick will apply.
+        }
+      } catch {
+        if (disposed) return
+        useSwarm.getState().setDataError('unavailable')
+        if (!live) {
+          live = EMPTY_LIVE
+          const cur = useSwarm.getState().snap
+          if (cur) useSwarm.getState().setSnapshot(applyLiveSales(cur, live))
+        }
+      }
+    }
+    void load()
+    poll = window.setInterval(() => { void load() }, POLL_MS)
+  }
 
   const connect = () => {
     if (disposed) return
@@ -84,7 +128,16 @@ export function startConnection(): () => void {
     ws.onerror = () => ws?.close()
   }
 
-  if (preferLocalSim()) {
+  if (preferLive()) {
+    startLive()
+    return () => {
+      disposed = true
+      window.clearInterval(poll)
+      stopSim()
+    }
+  }
+
+  if (preferSim()) {
     startSim()
     return () => {
       disposed = true
@@ -97,6 +150,7 @@ export function startConnection(): () => void {
   return () => {
     disposed = true
     window.clearTimeout(retry)
+    window.clearInterval(poll)
     ws?.close()
     stopSim()
   }

@@ -89,13 +89,19 @@ export class ClientSim {
   private wall = 0
   private silent = false
 
-  constructor(private onSnapshot: (s: Snapshot) => void, private speed = 1) {
+  constructor(private onSnapshot: (s: Snapshot) => void, private speed = 1, readonly ambient = false) {
     this.agents = Object.fromEntries(AGENTS.map((a) => [a.id, {
       id: a.id, name: a.name, role: a.role, state: 'idle', current_task: null, progress: 0, queue: 0,
       completed: 0, level: 1, paused: false, boost: false, logs: [], outputs: [],
     } satisfies AgentStatus])) as unknown as Record<AgentId, AgentStatus>
     this.queues = Object.fromEntries(AGENTS.map((a) => [a.id, []])) as unknown as Record<AgentId, SimTask[]>
-    this.emit('system', 'aether', 'Swarm online (local simulator) — mission: hit goal by Cyber Monday')
+    this.emit(
+      'system',
+      'aether',
+      this.ambient
+        ? 'Office ambience on — agent motion is simulated; sales come from live Gumroad data'
+        : 'Swarm online (local simulator) — mission: hit goal by Cyber Monday',
+    )
   }
 
   start() {
@@ -110,7 +116,7 @@ export class ClientSim {
   stop() { window.clearInterval(this.timer) }
 
   // ------------------------------------------------------------------ helpers
-  private now() { return new Date(Math.min(END.getTime(), START.getTime() + this.simMs)) }
+  private now() { return this.ambient ? new Date() : new Date(Math.min(END.getTime(), START.getTime() + this.simMs)) }
   private day() { return Math.floor((this.now().getTime() - new Date('2026-11-10T00:00:00').getTime()) / 864e5) }
   private label() {
     const d = this.now()
@@ -137,13 +143,17 @@ export class ClientSim {
 
   // ------------------------------------------------------------------ main step
   private step(dt: number) {
-    if (this.paused || this.now() >= END) { this.publish(); return }
+    if (this.paused || (!this.ambient && this.now() >= END)) { this.publish(); return }
     this.wall += dt
-    this.simMs += dt * MIN_PER_SEC * 60_000
-    this.plan()
+    if (!this.ambient) this.simMs += dt * MIN_PER_SEC * 60_000
+    if (!this.ambient) this.plan()
     for (const a of AGENTS) this.work(a.id, dt)
-    this.market(dt * MIN_PER_SEC / 60)
-    if (this.wall - this.lastSeriesSec >= 1) { this.lastSeriesSec = this.wall; this.series = [...this.series, this.m.revenue].slice(-120) }
+    if (!this.ambient) this.market(dt * MIN_PER_SEC / 60)
+    else this.m.sim_time = this.label()
+    if (!this.ambient && this.wall - this.lastSeriesSec >= 1) {
+      this.lastSeriesSec = this.wall
+      this.series = [...this.series, this.m.revenue].slice(-120)
+    }
     this.publish()
   }
 
@@ -401,7 +411,7 @@ export class ClientSim {
 
   // ------------------------------------------------------------------ io
   control(action: ControlAction, agent?: AgentId) {
-    if (action === 'reset') { this.stop(); Object.assign(this, new ClientSim(this.onSnapshot, this.speed)); this.start(); return }
+    if (action === 'reset') { this.stop(); Object.assign(this, new ClientSim(this.onSnapshot, this.speed, this.ambient)); this.start(); return }
     if (agent) {
       const a = this.agents[agent]
       if (action === 'pause') a.paused = true
@@ -432,8 +442,8 @@ export class ClientSim {
       .sort((x, y) => (x.status === 'running' ? 0 : 1) - (y.status === 'running' ? 0 : 1) || x.priority - y.priority)
       .slice(0, 20).map(({ payload: _p, total: _t, elapsed: _e, ...t }) => t)
     this.onSnapshot({
-      type: 'snapshot', mode: 'simulation',
-      integrations: { llm: 'simulated', search: 'simulated', pdf: 'simulated', gumroad: 'simulated', etsy: 'simulated', shopify: 'simulated', pinterest: 'simulated', email: 'simulated', ads: 'simulated' },
+      type: 'snapshot', mode: this.ambient ? 'live' : 'simulation',
+      integrations: { llm: 'simulated', search: 'simulated', pdf: 'simulated', gumroad: this.ambient ? 'live' : 'simulated', etsy: 'simulated', shopify: 'simulated', pinterest: 'simulated', email: 'simulated', ads: this.ambient ? 'off' : 'simulated' },
       goal: GOAL, deadline: '2026-11-30', sim_time: this.label(), day_index: this.day(), days_total: 20,
       finished: this.now() >= END, paused: this.paused,
       metrics: { ...this.m, traffic: { ...this.m.traffic } },

@@ -88,13 +88,17 @@ export interface SwarmEvent {
   target?: AgentId | null
   message: string
   amount?: number | null
+  /** True when the row is ambient agent activity, not a real Gumroad event. */
+  simulated?: boolean
 }
 
 export interface Metrics {
   revenue: number
+  net_revenue?: number | null
+  net_after_fees?: boolean
   orders: number
-  visitors: number
-  conversion_rate: number
+  visitors: number | null
+  conversion_rate: number | null
   aov: number
   ad_spend: number
   traffic: Record<string, number>
@@ -121,8 +125,9 @@ export interface Snapshot {
   campaigns: Campaign[]
   tasks: Task[]
   events: SwarmEvent[]
-  knowledge: { subscribers: number; insights: string[]; niche_weights: Record<string, number> }
+  knowledge: { subscribers: number | null; insights: string[]; niche_weights: Record<string, number> }
   escalations: { agent: string; action: string; note?: string }[]
+  data_updated_at?: string | null
 }
 
 export type ServerMessage = Snapshot | { type: 'event'; event: SwarmEvent }

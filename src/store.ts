@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { AgentId, ControlAction, Snapshot, SwarmEvent } from './types'
 
-export type Link = 'connecting' | 'backend' | 'local'
+export type Link = 'connecting' | 'backend' | 'local' | 'live'
 
 /** A transient 3D effect (handoff arc, sale coin, broadcast) spawned from an event. */
 export interface Fx {
@@ -15,6 +15,7 @@ export interface Fx {
 interface SwarmStore {
   snap: Snapshot | null
   link: Link
+  dataError: string | null
   feed: SwarmEvent[]
   fx: Fx[]
   memoryPulse: number
@@ -29,6 +30,7 @@ interface SwarmStore {
   setSnapshot: (s: Snapshot) => void
   pushEvent: (e: SwarmEvent) => void
   setLink: (l: Link) => void
+  setDataError: (err: string | null) => void
   select: (a: AgentId | null) => void
   hover: (a: AgentId | null) => void
   pruneFx: (now: number) => void
@@ -42,6 +44,7 @@ const seen = new Set<string>()
 export const useSwarm = create<SwarmStore>((set, get) => ({
   snap: null,
   link: 'connecting',
+  dataError: null,
   feed: [],
   fx: [],
   memoryPulse: 0,
@@ -90,6 +93,7 @@ export const useSwarm = create<SwarmStore>((set, get) => ({
     set({ feed: [e, ...st.feed].slice(0, 60), fx: fx.slice(-40), memoryPulse, saleFlash })
   },
   setLink: (link) => set({ link }),
+  setDataError: (dataError) => set({ dataError }),
   select: (selected) => set({ selected }),
   hover: (hovered) => set({ hovered }),
   pruneFx: (now) => {
