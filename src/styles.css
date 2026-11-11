@@ -423,10 +423,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 
 @media (max-width: 380px) {
   .sheet-tab-name { font-size: 9px; }
-  /* keep brand + 44px keys on one row on very narrow phones */
-  .app.is-compact .link-short { display: none; }
-  .app.is-compact .linkbox { padding: 0 10px; }
-  .app.is-compact .key { padding: 0 10px; }
+  /* keep the LIVE/SIM label visible; tighten keys so they still fit at 375px */
+  .app.is-compact .linkbox { padding: 0 8px; gap: 4px; }
+  .app.is-compact .link-short { display: inline; font-size: 10px; letter-spacing: .04em; }
+  .app.is-compact .key { padding: 0 8px; }
 }
 
 /* mid-size tablets in the compact range get a slightly roomier sheet */
