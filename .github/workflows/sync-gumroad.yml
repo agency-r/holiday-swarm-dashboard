@@ -1,0 +1,79 @@
+name: Sync Gumroad sales
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gumroad-dashboard
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch Gumroad snapshot
+        env:
+          GUMROAD_ACCESS_TOKEN: ${{ secrets.GUMROAD_ACCESS_TOKEN }}
+        run: python3 scripts/sync_gumroad.py --out /tmp/sales.json
+
+      - name: Setup Node
+        if: github.event_name != 'schedule'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Build dashboard
+        if: github.event_name != 'schedule'
+        run: |
+          npm ci
+          npm run build
+          mkdir -p dist/data
+          cp /tmp/sales.json dist/data/sales.json
+          touch dist/.nojekyll
+
+      - name: Publish to gh-pages
+        env:
+          FULL_DEPLOY: ${{ github.event_name != 'schedule' }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages:gh-pages
+          work=/tmp/gh-pages-work
+          rm -rf "$work"
+          git worktree add "$work" gh-pages
+          if [ "$FULL_DEPLOY" = "true" ]; then
+            find "$work" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+            cp -a dist/. "$work"/
+            mkdir -p "$work/data"
+            cp /tmp/sales.json "$work/data/sales.json"
+            touch "$work/.nojekyll"
+          else
+            mkdir -p "$work/data"
+            cp /tmp/sales.json "$work/data/sales.json"
+          fi
+          cd "$work"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            if [ "$FULL_DEPLOY" = "true" ]; then
+              git commit -m "Deploy dashboard and Gumroad sales snapshot"
+            else
+              git commit -m "Sync Gumroad sales snapshot"
+            fi
+            git push origin HEAD:gh-pages
+          fi
