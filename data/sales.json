@@ -1,0 +1,107 @@
+{
+  "updated_at": "2026-11-11T22:52:37.446085Z",
+  "timezone": "America/Chicago",
+  "currency": "usd",
+  "goal": 5000,
+  "deadline": "2026-11-30",
+  "season_start": "2026-11-10",
+  "gross_revenue": 0.0,
+  "net_revenue": 0.0,
+  "net_after_fees": true,
+  "orders": 0,
+  "refunds": 0,
+  "products": [
+    {
+      "permalink": "advent-activity-calendar",
+      "name": "Advent Activity Calendar",
+      "url": "https://agencyr.gumroad.com/l/advent-activity-calendar",
+      "price": 7.0,
+      "product_type": "printable",
+      "niche": "Family advent",
+      "sales": 0,
+      "gross_revenue": 0.0,
+      "net_revenue": 0.0,
+      "published": true
+    },
+    {
+      "permalink": "black-friday-budget-tracker",
+      "name": "Black Friday Budget Tracker",
+      "url": "https://agencyr.gumroad.com/l/black-friday-budget-tracker",
+      "price": 5.0,
+      "product_type": "spreadsheet",
+      "niche": "Holiday budgeting",
+      "sales": 0,
+      "gross_revenue": 0.0,
+      "net_revenue": 0.0,
+      "published": true
+    },
+    {
+      "permalink": "christmas-gift-tracker",
+      "name": "Christmas Gift Tracker",
+      "url": "https://agencyr.gumroad.com/l/christmas-gift-tracker",
+      "price": 7.0,
+      "product_type": "spreadsheet",
+      "niche": "Gift planning",
+      "sales": 0,
+      "gross_revenue": 0.0,
+      "net_revenue": 0.0,
+      "published": true
+    },
+    {
+      "permalink": "holiday-meal-planner",
+      "name": "Holiday Meal Planner",
+      "url": "https://agencyr.gumroad.com/l/holiday-meal-planner",
+      "price": 6.0,
+      "product_type": "planner",
+      "niche": "Holiday meals",
+      "sales": 0,
+      "gross_revenue": 0.0,
+      "net_revenue": 0.0,
+      "published": true
+    },
+    {
+      "permalink": "holiday-planner-bundle",
+      "name": "Holiday Planner Bundle",
+      "url": "https://agencyr.gumroad.com/l/holiday-planner-bundle",
+      "price": 13.95,
+      "product_type": "bundle",
+      "niche": "Holiday planning",
+      "sales": 0,
+      "gross_revenue": 0.0,
+      "net_revenue": 0.0,
+      "published": true
+    },
+    {
+      "permalink": "secret-santa-printable-kit",
+      "name": "Secret Santa Printable Kit",
+      "url": "https://agencyr.gumroad.com/l/secret-santa-printable-kit",
+      "price": 6.0,
+      "product_type": "printable",
+      "niche": "Secret Santa",
+      "sales": 0,
+      "gross_revenue": 0.0,
+      "net_revenue": 0.0,
+      "published": true
+    }
+  ],
+  "daily": [
+    {
+      "date": "2026-11-10",
+      "gross": 0.0,
+      "net": 0.0,
+      "orders": 0
+    },
+    {
+      "date": "2026-11-11",
+      "gross": 0.0,
+      "net": 0.0,
+      "orders": 0
+    }
+  ],
+  "revenue_series": [
+    0.0,
+    0.0
+  ],
+  "recent_sales": [],
+  "sources": {}
+}
