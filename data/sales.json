@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-22T05:24:47.125065Z",
+  "updated_at": "2026-11-22T06:21:05.004167Z",
   "timezone": "America/Chicago",
   "currency": "usd",
   "goal": 5000,
@@ -156,9 +156,16 @@
       "gross": 0.0,
       "net": 0.0,
       "orders": 0
+    },
+    {
+      "date": "2026-11-22",
+      "gross": 0.0,
+      "net": 0.0,
+      "orders": 0
     }
   ],
   "revenue_series": [
+    0.0,
     0.0,
     0.0,
     0.0,
